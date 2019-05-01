@@ -1,33 +1,34 @@
-        comp := gfortran -lfgsl -lgsl 
+        comp := gfortran
         opt  := -c -Wall -Wtabs
-        pattern:=*.f95
+        opt2 := -lfgsl -lgsl
+        pattern:=*.f90
         source :=$(wildcard $(pattern))
-        obj :=$(patsubst %.f95, %.o, $(source))
-        mod :=$(patsubst %.f95, %.mod, $(source))
+        obj :=$(patsubst %.f90, %.o, $(source))
+        mod :=$(patsubst %.f90, %.mod, $(source))
 
-        main : $(obj)
-	       $(comp) $^ -o $@
+        main-r : $(obj)
+	       $(comp) fgsl.o $(opt2) $^ -o $@
 
-         %.o : %.f95
-	       $(comp) $(opt) $< -o $@
+         %.o : %.f90
+	       $(comp) $(opt2) $(opt) $< -o $@
 
-       %.mod : %.f95
-	       $(comp) $(opt) $<
+       %.mod : %.f90
+	       $(comp) $(opt2) $(opt) $<
 	       
     main.o : task.mod fgsl.mod
 
-       result : main input
+       result : main-r input
 	        time ./$<  < input > output
-       result-r : main input
+       result-r : main-r input
 		rm output
 		make result
 		cat output
 
         clean :
-	 rm -f $(obj) $(mod) main
+	 rm -f $(obj) $(mod) main-r
 
         clean-all :
-	 rm -f *.o *.mod main *.eps *.dat result
+	 rm -f *.o *.mod main-r *.eps *.dat result
 
           git-s :
 		git status

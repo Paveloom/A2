@@ -1,16 +1,18 @@
 program main
-use fgsl
 use Task ! Модуль с процедурами
 implicit none
 
 real(fgsl_double), allocatable, dimension(:) :: x_array, y_array
 real(fgsl_double) x
+integer n
 
-allocate(x_array(4), y_array(4))
+read(*,*) n
+read(*,*) x
 
-x = 0
-x_array = 1
-y_array = 2
+allocate(x_array(n), y_array(n))
+
+read(*,*) x_array
+read(*,*) y_array
 
 write(*,*) GetSplineValue(x,x_array,y_array)
 
