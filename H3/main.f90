@@ -3,22 +3,22 @@ use Task
 implicit none
 
      real(8), allocatable, dimension(:,:) :: A
-     integer x1, x2, y1, y2
+     integer(4) x1, x2, y1, y2
          
-     integer i, j
+     integer(4) i, j
      
      ! Переменные для деления первого подпространства итераций на порции
-     integer A_size
-     integer A_partion_size
-     integer A_partion_size_mod
-     integer A_LB, A_RB ! Границы индексов для данного ранга
+     integer(4) A_size
+     integer(4) A_partion_size
+     integer(4) A_partion_size_mod
+     integer(4) A_LB, A_RB ! Границы индексов для данного ранга
      
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
-     integer ierr, status
+     integer(4) ierr, status
 
      ! Указание на размер квадратной матрицы
-     A_size = 5000
+     A_size = 1000
           
      allocate(A(A_size,A_size))
      
@@ -73,14 +73,15 @@ implicit none
      ! Передача процессом 0 готовой матрицы A остальным процессам
      call mpi_bcast(A, A_size*A_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)   
      
+     call GetMaxCoordinates(A, x1, y1, x2, y2)
+     
      call mpi_finalize(mpiErr)
      
-!     call GetMaxCoordinates(A, x1, y1, x2, y2)
+     if (mpiRank .eq. mpiSize - 1) then
      
-!     write(*,*) x1
-!     write(*,*) y1
-!     write(*,*) x2
-!     write(*,*) y2
+          write(*,'(/,4x,a,i6,/,4x,a,i6,/,4x,a,i6,/,4x,a,i6,/)') 'x1   = ', x1, 'y1   = ', y1, 'x2   = ', x2, 'y2   = ', y2 
+     
+     endif
 
      deallocate(A)
 
