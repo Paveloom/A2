@@ -16,7 +16,7 @@
     main.o : task.mod
 
        result : main input
-	        time ./$<  < input > output
+	        mpiexec -np 2 ./$<  < input > output
        result-r : main input
 		rm output
 		make result
