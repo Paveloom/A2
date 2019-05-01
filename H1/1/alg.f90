@@ -60,6 +60,7 @@ module Task
                     X_2(thr_id) = Down
                     Y_1(thr_id) = L
                     Y_2(thr_id) = R
+                    
                 endif
             end do
         end do

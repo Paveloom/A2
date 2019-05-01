@@ -1,17 +1,17 @@
-module Task
-use fgsl
+module Task ! Модуль с процедурами
+use fgsl ! Подключение библиотеки FGSL
 implicit none
 
 contains
 
-function GetSplineValue(x, x_array, y_array)
+function GetSplineValue(x, x_array, y_array) ! Интерполяция сплайнами
 
 real(fgsl_double), dimension(:), intent(in) :: x_array, y_array
 real(fgsl_double), intent(in) :: x
 real(fgsl_double) :: GetSplineValue
     
 integer(fgsl_size_t) n
-integer(fgsl_int) :: status
+integer(fgsl_int) status
 
      type(fgsl_interp_accel) :: acc
      type(fgsl_spline) :: spline
