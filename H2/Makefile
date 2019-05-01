@@ -6,7 +6,7 @@
         obj :=$(patsubst %.f90, %.o, $(source))
         mod :=$(patsubst %.f90, %.mod, $(source))
 
-        main-r : $(obj)
+        main : $(obj)
 	       $(comp) fgsl.o $(opt2) $^ -o $@
 
          %.o : %.f90
@@ -17,18 +17,18 @@
 	       
     main.o : task.mod fgsl.mod
 
-       result : main-r input
+       result : main input
 	        time ./$<  < input > output
-       result-r : main-r input
+       result-r : main input
 		rm output
 		make result
 		cat output
 
         clean :
-	 rm -f $(obj) $(mod) main-r
+	 rm -f $(obj) $(mod) main
 
         clean-all :
-	 rm -f *.o *.mod main-r *.eps *.dat result
+	 rm -f *.o *.mod main *.eps *.dat result
 
           git-s :
 		git status
