@@ -6,16 +6,16 @@ real(fgsl_double), allocatable, dimension(:) :: x_array, y_array
 real(fgsl_double) x
 integer n
 
-read(*,*) n
-read(*,*) x
+     read(*,*) n
+     read(*,*) x
 
-allocate(x_array(n), y_array(n))
+     allocate(x_array(n), y_array(n))
 
-read(*,*) x_array
-read(*,*) y_array
+     read(*,*) x_array
+     read(*,*) y_array
 
-write(*,*) GetSplineValue(x,x_array,y_array)
+     write(*,'(/,f10.5,1X,/)') GetSplineValue(x, x_array, y_array)
 
-deallocate(x_array,y_array)
+     deallocate(x_array, y_array)
 
 end
