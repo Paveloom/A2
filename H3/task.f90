@@ -15,15 +15,15 @@ contains
         logical :: transpos
         real(8) :: max_sum   
         
-        integer(4) mpiErr, mpiSize
-        
-        call mpi_init(mpiErr)
-        
-        call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
-        
-        call mpi_finalize(mpiErr)
-        
-        write(*,*) mpiSize
+!        integer(4) mpiErr, mpiSize
+!        
+!        call mpi_init(mpiErr)
+!        
+!        call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
+!        
+!        call mpi_finalize(mpiErr)
+!        
+!        write(*,*) mpiSize
         
         m = size(A, dim=1) 
         n = size(A, dim=2) 
@@ -49,7 +49,7 @@ contains
         do L=1, n        
 
             current_column = B(:, L)
-            do R=L,n
+            do R = L, n
  
                 if (R > L) then 
                     current_column = current_column + B(:, R)
