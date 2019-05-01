@@ -4,29 +4,33 @@ implicit none
 
 contains
 
-     subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
+     subroutine GetMaxCoordinates(A, x1, y1, x2, y2) ! Процедура нахождения координат максимальной подматрицы
      implicit none
         
+     ! Входные и выходные данные
      real(8), dimension(:,:), intent(in) :: A
      integer(4), intent(out) :: x1, y1, x2, y2
-     integer(4) :: n, L, R, Up, Down, m, tmp
+     
+     ! Переменные для работы алгоритма Кадане
+     integer(4) L, R, Up, Down
+     integer(4) n, m, tmp
      real(8), allocatable :: current_column(:), B(:,:)
-     real(8) :: current_sum
-     logical :: transpos
-     real(8) :: max_sum   
+     real(8) current_sum
+     real(8) max_sum
+     logical transpos
         
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
-     integer(4) ierr, status
+     integer(4) ierr
      
      ! Переменные для деления первого подпространства итераций на порции
-     integer(4) L_partion_size
-     integer(4) L_partion_size_mod
-     integer(4) L_LB, L_RB ! Границы индексов для данного ранга
+     integer(4) L_partion_size     ! Размер порции
+     integer(4) L_partion_size_mod ! Остаток от деления n на mpiSize
+     integer(4) L_LB, L_RB         ! Границы индексов для данного ранга
      
      ! Переменные для определения результата
-     real(8) real_max_sum(2)
-     integer max_index
+     real(8) real_max_sum(2) ! Максимальное значение max_sum и ранг процесса, который его нашёл 
+     integer max_rank        ! Ранг процесса, который нашел максимальное значение max_sum
      
      
           m = size(A, dim=1) 
@@ -66,7 +70,8 @@ contains
           
                     endif
                  
-               ! Работа процесса над своей порцией   
+          ! Работа процесса над своей порцией   
+               
                L_LB = 1 + mpiRank * L_partion_size
                L_RB = L_partion_size + mpiRank * L_partion_size
 
@@ -101,12 +106,12 @@ contains
      
      ! Сообщение другим процессам результатов
      
-     max_index = int(real_max_sum(2))
+     max_rank = int(real_max_sum(2))
      
-     call mpi_bcast(x1, 1, MPI_DOUBLE_PRECISION, max_index, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(y1, 1, MPI_DOUBLE_PRECISION, max_index, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(x2, 1, MPI_DOUBLE_PRECISION, max_index, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(y2, 1, MPI_DOUBLE_PRECISION, max_index, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(x1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(y1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(x2, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(y2, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
                                                                        
                                                                        
         if (transpos) then  
@@ -122,14 +127,14 @@ contains
        end subroutine
 
 
-        subroutine FindMaxInArray(a, ans, Up, Down)
+        subroutine FindMaxInArray(a, ans, Up, Down) ! Процедура поиска максимального подотрезка в массиве
         implicit none
         
             real(8), intent(in), dimension(:) :: a
             integer(4), intent(out) :: Up, Down
             real(8), intent(out) :: ans
-            real(8) :: cur, sum, min_sum
-            integer(4) :: min_pos, i
+            real(8) cur, sum, min_sum
+            integer(4) min_pos, i
 
             ans = a(1)
             Up = 1

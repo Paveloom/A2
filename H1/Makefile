@@ -1,4 +1,4 @@
-    comp:=ifort
+    comp:=ifort -warn all
      opt:=-c
 parallel:=-qopenmp -debug -g -traceback -check all -fp-stack-check
 

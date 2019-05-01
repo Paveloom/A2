@@ -2,9 +2,11 @@ program main
 use Task
 implicit none
 
+     ! Входные и выходные данные
      real(8), allocatable, dimension(:,:) :: A
      integer(4) x1, x2, y1, y2
-         
+     
+     ! Вспомогательные переменные
      integer(4) i, j
      
      ! Переменные для деления первого подпространства итераций на порции
@@ -54,28 +56,31 @@ implicit none
      
      enddo; enddo
      
-     ! Передача всех порций процессу 0
+               ! Передача всех порций процессу 0
            
-     if (mpiRank .gt. 0) then
+               if (mpiRank .gt. 0) then
      
-          call mpi_send(A(A_LB:A_RB,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, 0, mpiRank, MPI_COMM_WORLD, ierr)
+                    call mpi_send(A(A_LB:A_RB,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, 0, mpiRank, MPI_COMM_WORLD, ierr)
      
-     else
+               else
      
-          do i = 1, mpiSize - 1
+               do i = 1, mpiSize - 1
                
-               call mpi_recv(A(1 + i * A_partion_size:A_partion_size + i * A_partion_size,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
+                    call mpi_recv(A(1 + i * A_partion_size:A_partion_size + i * A_partion_size,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
      
-          enddo
+               enddo
           
      endif
      
      ! Передача процессом 0 готовой матрицы A остальным процессам
      call mpi_bcast(A, A_size*A_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)   
      
+     ! Вызов процедуры нахождения координат максимальной подматрицы
      call GetMaxCoordinates(A, x1, y1, x2, y2)
      
      call mpi_finalize(mpiErr)
+     
+     ! Вывод результата
      
      if (mpiRank .eq. mpiSize - 1) then
      
