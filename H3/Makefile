@@ -1,5 +1,5 @@
         comp := mpiifort
-        opt  := -c -debug
+        opt  := -c -debug -warn all
         pattern:=*.f90
         source :=$(wildcard $(pattern))
         obj :=$(patsubst %.f90, %.o, $(source))

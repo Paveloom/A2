@@ -11,20 +11,14 @@ implicit none
      integer A_size
      integer A_partion_size
      integer A_partion_size_mod
-     integer, allocatable, dimension(:) :: A_size_array
      integer A_LB, A_RB ! Границы индексов для данного ранга
      
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
      integer ierr, status
 
-     A_size = 10000
-     allocate(A_size_array(A_size))
-          
-          ! Заполнение индексами первого подпространства итераций 
-          do i = 1, A_size
-               A_size_array(i) = i
-          enddo
+     ! Указание на размер квадратной матрицы
+     A_size = 5000
           
      allocate(A(A_size,A_size))
      
@@ -50,9 +44,12 @@ implicit none
      A_LB = 1 + mpiRank * A_partion_size
      A_RB = A_partion_size + mpiRank * A_partion_size
      
-     do i = A_LB, A_RB; do j = 1, A_size
+     do i = A_LB, A_RB; 
      
           if (i .gt. A_size) cycle
+     
+     do j = 1, A_size
+        
           A(i,j) = i + j
      
      enddo; enddo
@@ -85,6 +82,6 @@ implicit none
 !     write(*,*) x2
 !     write(*,*) y2
 
-     deallocate(A, A_size_array)
+     deallocate(A)
 
 end

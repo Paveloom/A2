@@ -40,23 +40,23 @@ contains
                x2=1
                y2=1
 
-        do L=1, n        
+          do L = 1, n        
 
-            current_column = B(:, L)
-            do R = L, n
+                 current_column = B(:, L)
+                 do R = L, n
  
-                if (R > L) then 
-                    current_column = current_column + B(:, R)
-                endif
+                     if (R > L) then 
+                         current_column = current_column + B(:, R)
+                     endif
                 
-                call FindMaxInArray(current_column, current_sum, Up, Down) 
+                     call FindMaxInArray(current_column, current_sum, Up, Down) 
                       
-                if (current_sum > max_sum) then
-                    max_sum = current_sum
-                    x1 = Up
-                    x2 = Down
-                    y1 = L
-                    y2 = R
+                     if (current_sum > max_sum) then
+                         max_sum = current_sum
+                         x1 = Up
+                         x2 = Down
+                         y1 = L
+                         y2 = R
                     
                 endif
             end do
