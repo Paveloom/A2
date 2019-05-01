@@ -1,19 +1,19 @@
-        comp := gfortran
-        opt  := -c -Wall -Wtabs
-        pattern:=*.f95
+        comp := mpiifort
+        opt  := -c -debug
+        pattern:=*.f90
         source :=$(wildcard $(pattern))
-        obj :=$(patsubst %.f95, %.o, $(source))
+        obj :=$(patsubst %.f90, %.o, $(source))
 
         main : $(obj)
 	       $(comp) $^ -o $@
 
-         %.o : %.f95
+         %.o : %.f90
 	       $(comp) $(opt) $< -o $@
 
-       %.mod : %.f95
+       %.mod : %.f90
 	       $(comp) $(opt) $<
 
-    main.o : subprograms.mod
+    main.o : task.mod
 
        result : main input
 	        time ./$<  < input > output
