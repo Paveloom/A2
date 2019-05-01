@@ -4,47 +4,41 @@ implicit none
 
 contains
 
-        subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
-        implicit none
+     subroutine GetMaxCoordinates(A, x1, y1, x2, y2)
+     implicit none
         
-        real(8), dimension(:,:), intent(in) :: A
-        integer(4), intent(out) :: x1, y1, x2, y2
-        integer(4) :: n, L, R, Up, Down, m, tmp
-        real(8), allocatable :: current_column(:), B(:,:)
-        real(8) :: current_sum
-        logical :: transpos
-        real(8) :: max_sum   
+     real(8), dimension(:,:), intent(in) :: A
+     integer(4), intent(out) :: x1, y1, x2, y2
+     integer(4) :: n, L, R, Up, Down, m, tmp
+     real(8), allocatable :: current_column(:), B(:,:)
+     real(8) :: current_sum
+     logical :: transpos
+     real(8) :: max_sum   
         
-!        integer(4) mpiErr, mpiSize
-!        
-!        call mpi_init(mpiErr)
-!        
-!        call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
-!        
-!        call mpi_finalize(mpiErr)
-!        
-!        write(*,*) mpiSize
+     integer(4) mpiErr, mpiSize
         
-        m = size(A, dim=1) 
-        n = size(A, dim=2) 
-        transpos = .FALSE.
+          m = size(A, dim=1) 
+          n = size(A, dim=2) 
+          transpos = .FALSE.
 
-        if (m < n) then 
-            transpos = .TRUE.   
-            B = transpose(A)
-            m = size(B, dim=1) 
-            n = size(B, dim=2) 
-        else
-            B = A     
-        endif
+          if (m < n) then 
+               transpos = .TRUE.   
+               B = transpose(A)
+               m = size(B, dim=1) 
+               n = size(B, dim=2) 
+          else
+                B = A     
+          endif
 
-        allocate(current_column(m))
+          call mpi_init(mpiErr)
 
-        max_sum=B(1,1)
-        x1=1
-        y1=1
-        x2=1
-        y2=1
+               allocate(current_column(m))
+
+               max_sum=B(1,1)
+               x1=1
+               y1=1
+               x2=1
+               y2=1
 
         do L=1, n        
 
@@ -67,8 +61,10 @@ contains
                 endif
             end do
         end do
-        
+
        deallocate(current_column)
+
+       call mpi_finalize(mpiErr)
 
         if (transpos) then  
             tmp = x1
