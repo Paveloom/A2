@@ -25,7 +25,7 @@ contains
           n = size(A, dim=2) 
           transpos = .FALSE.
 
-          if (m < n) then 
+          if (m .lt. n) then 
           
                transpos = .TRUE.   
                B = transpose(A)
@@ -44,26 +44,28 @@ contains
           allocate(X_1(0:thr_num-1), X_2(0:thr_num-1), Y_1(0:thr_num-1), Y_2(0:thr_num-1))
           allocate(max_sum(0:thr_num-1))
 
-               max_sum=B(1,1)
-               X_1=1
-               Y_1=1
-               X_2=1
-               Y_2=1
+               max_sum = B(1,1)
+               X_1 = 1
+               Y_1 = 1
+               X_2 = 1
+               Y_2 = 1
 
-          !$omp parallel private(R,L,current_sum,thr_id,Up,Down) shared(B,n,m,current_column,max_sum,X_1,Y_1,X_2,Y_2) default(none)
-          !$omp do schedule(dynamic)
-          do L=1, n        
+          !$omp parallel do private(R,L,current_sum,thr_id,Up,Down) shared(B,n,m,current_column,max_sum,X_1,Y_1,X_2,Y_2) default(none) schedule(dynamic)
+          
+          do L = 1, n        
 
                thr_id = omp_get_thread_num()
 
                current_column(:,thr_id) = B(:, L)
-               do R=L,n
+               do R = L, n
  
                     if (R > L) then 
+                    
                          current_column(:,thr_id) = current_column(:,thr_id) + B(:, R)
+                         
                     endif
                 
-               call FindMaxInArray(current_column(:,thr_id), current_sum, Up, Down) 
+                    call FindMaxInArray(current_column(:,thr_id), current_sum, Up, Down) 
                       
                     if (current_sum > max_sum(thr_id)) then
                     
@@ -74,12 +76,15 @@ contains
                          Y_2(thr_id) = R
                     
                     endif
+               
                end do
+          
           end do
-          !$omp end do nowait
-          !$omp end parallel
+          
+          !$omp end parallel do
 
           thr_max = maxloc(max_sum, dim=1)
+          
           x1 = X_1(thr_max-1)
           x2 = X_2(thr_max-1)
           y1 = Y_1(thr_max-1)
@@ -119,23 +124,24 @@ contains
                min_sum = 0d0
                min_pos = 0
 
-               do i=1, size(a)
+               do i = 1, size(a)
                
                     sum = sum + a(i)
                     cur = sum - min_sum
                     
-               if (cur > ans) then
+                    if (cur .gt. ans) then
                
-                    ans = cur
-                    Up = min_pos + 1
-                    Down = i
+                         ans = cur
+                         Up = min_pos + 1
+                         Down = i
                 
-               endif
+                    endif
          
-               if (sum < min_sum) then
+                    if (sum .lt. min_sum) then
                     
                     min_sum = sum
                     min_pos = i
+                    
                     endif
 
                enddo
