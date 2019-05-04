@@ -13,7 +13,7 @@ implicit none
      integer(4) A_size
      integer(4) A_partion_size
      integer(4) A_partion_size_mod
-     integer(4) A_LB, A_RB ! Границы индексов для данного ранга
+     integer(4) A_leftbound, A_rightbound ! Границы индексов для данного ранга
      
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
@@ -26,27 +26,27 @@ implicit none
      
      call mpi_init(mpiErr)
         
-          call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
-          call mpi_comm_rank(MPI_COMM_WORLD, mpiRank, mpiErr)
+     call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
+     call mpi_comm_rank(MPI_COMM_WORLD, mpiRank, mpiErr)
           
-               ! Вычисление размера порции
-               A_partion_size_mod = mod(A_size,mpiSize)
+     ! Вычисление размера порции
+     A_partion_size_mod = mod(A_size,mpiSize)
                
-               if (A_partion_size_mod .eq. 0) then
+     if (A_partion_size_mod .eq. 0) then
                
-                    A_partion_size = A_size / mpiSize
+          A_partion_size = A_size / mpiSize
                
-               else
+     else
                
-                    A_partion_size = (A_size + (mpiSize - A_partion_size_mod)) / mpiSize
+          A_partion_size = (A_size + (mpiSize - A_partion_size_mod)) / mpiSize
           
-               endif
+     endif
  
      ! Заполнение процесcом своей порции
-     A_LB = 1 + mpiRank * A_partion_size
-     A_RB = A_partion_size + mpiRank * A_partion_size
+     A_leftbound = 1 + mpiRank * A_partion_size
+     A_rightbound = A_partion_size + mpiRank * A_partion_size
      
-     do i = A_LB, A_RB; 
+     do i = A_leftbound, A_rightbound; 
      
           if (i .gt. A_size) cycle
      
@@ -56,19 +56,19 @@ implicit none
      
      enddo; enddo
      
-               ! Передача всех порций процессу 0
+     ! Передача всех порций процессу 0
            
-               if (mpiRank .gt. 0) then
+     if (mpiRank .gt. 0) then
      
-                    call mpi_send(A(A_LB:A_RB,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, 0, mpiRank, MPI_COMM_WORLD, ierr)
+          call mpi_send(A(A_leftbound:A_rightbound,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, 0, mpiRank, MPI_COMM_WORLD, ierr)
      
-               else
+     else
      
-               do i = 1, mpiSize - 1
+          do i = 1, mpiSize - 1
                
-                    call mpi_recv(A(1 + i * A_partion_size:A_partion_size + i * A_partion_size,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
+               call mpi_recv(A(1 + i * A_partion_size:A_partion_size + i * A_partion_size,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
      
-               enddo
+          enddo
           
      endif
      
