@@ -18,6 +18,9 @@ contains
      real(8) current_sum
      real(8) max_sum
      logical transpos
+     
+     ! Вспомогательные переменные
+     integer ier
         
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
@@ -29,9 +32,8 @@ contains
      integer(4) L_leftbound, L_rightbound ! Границы индексов для данного ранга
      
      ! Переменные для определения результата
-     real(8) real_max_sum(2) ! Максимальное значение max_sum и ранг процесса, который его нашёл 
-     integer max_rank        ! Ранг процесса, который нашел максимальное значение max_sum
-     
+     double precision real_max_sum(2) ! Максимальное значение max_sum и ранг процесса, который его нашёл
+     integer(4) max_rank ! Ранг процесса, который нашел максимальное значение max_sum
      
      m = size(A, dim=1) 
      n = size(A, dim=2) 
@@ -54,7 +56,8 @@ contains
      call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
      call mpi_comm_rank(MPI_COMM_WORLD, mpiRank, mpiErr)
 
-     allocate(current_column(m))
+     allocate(current_column(m), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива current_column'
 
      max_sum = B(1,1)
      x1 = 1
@@ -117,7 +120,7 @@ contains
      
      ! Сообщение другим процессам результатов
      
-     max_rank = int(real_max_sum(2))
+     max_rank = real_max_sum(2)
      
      call mpi_bcast(x1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
      call mpi_bcast(y1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)

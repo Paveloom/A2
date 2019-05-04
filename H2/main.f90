@@ -2,9 +2,11 @@ program main ! Интерполяция сплайнами с использов
 use Task ! Модуль с процедурами
 implicit none
 
-real(fgsl_double), allocatable, dimension(:) :: x_array, y_array ! Входные массивы
-real(fgsl_double) x ! Аргумент, при котором будем искать значение аппроксимирующей функции
-integer n ! Размер входных массивов
+     real(fgsl_double), allocatable, dimension(:) :: x_array, y_array ! Входные массивы
+     real(fgsl_double) x ! Аргумент, при котором будем искать значение аппроксимирующей функции
+     
+     integer n ! Размер входных массивов
+     integer ier ! Вспомогательная переменная
 
      ! Считывание размера входных массивов
      read(*,'()'); read(*,*) n
@@ -13,7 +15,11 @@ integer n ! Размер входных массивов
      read(*,'(/)'); read(*,*) x
 
      ! Выделение памяти под массивы
-     allocate(x_array(n), y_array(n))
+     allocate(x_array(n), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива x_array'
+     
+     allocate(y_array(n), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива y_array'
 
      ! Считывание входных массивов
      read(*,'(/)'); read(*,*) x_array

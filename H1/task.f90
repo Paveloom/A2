@@ -10,6 +10,9 @@ contains
      ! Входные и выходные данные
      real(8), dimension(:,:), intent(in) :: A
      integer(4), intent(out) :: x1, y1, x2, y2
+     
+     ! Вспомогательные переменные
+     integer ier
         
      ! Переменные для работы алгоритма Кадане
      integer(4) :: n, L, R, Up, Down, m, tmp, thr_id, thr_num, thr_max
@@ -39,10 +42,23 @@ contains
      endif
 
      thr_num = omp_get_max_threads()
+     
+     ! Выделение памяти под массивы
 
-     allocate(current_column(m,0:thr_num-1))
-     allocate(X_1(0:thr_num-1), X_2(0:thr_num-1), Y_1(0:thr_num-1), Y_2(0:thr_num-1))
-     allocate(max_sum(0:thr_num-1))
+     allocate(current_column(m,0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива current_column'
+     
+     allocate(X_1(0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива X_1'
+     allocate(X_2(0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива X_2'
+     allocate(Y_1(0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива Y_1'
+     allocate(Y_2(0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива Y_2'
+     
+     allocate(max_sum(0:thr_num-1), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива max_sum'
 
      max_sum = B(1,1)
      X_1 = 1

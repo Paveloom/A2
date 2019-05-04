@@ -7,12 +7,12 @@ implicit none
      integer(4) x1, x2, y1, y2
      
      ! Вспомогательные переменные
-     integer(4) i, j
+     integer(4) i, j, ier
      
      ! Переменные для деления первого подпространства итераций на порции
-     integer(4) A_size
-     integer(4) A_partion_size
-     integer(4) A_partion_size_mod
+     integer(4) A_size                    ! Длина стороны квадратной матрицы
+     integer(4) A_partion_size            ! Размер порции
+     integer(4) A_partion_size_mod        ! Остаток от деления A_size на mpiSize
      integer(4) A_leftbound, A_rightbound ! Границы индексов для данного ранга
      
      ! Вспомогательные переменные MPI
@@ -22,7 +22,7 @@ implicit none
      ! Указание на размер квадратной матрицы
      A_size = 1000
           
-     allocate(A(A_size,A_size))
+     allocate(A(A_size,A_size), stat = ier); if (ier .ne. 0) stop 'Не могу выделить память для массива A'
      
      call mpi_init(mpiErr)
         
