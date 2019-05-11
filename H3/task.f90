@@ -40,17 +40,13 @@ contains
      transpos = .FALSE.
 
      if (m .lt. n) then
-     
           transpos = .TRUE. 
             
           B = transpose(A)
           m = size(B, dim=1) 
           n = size(B, dim=2) 
-          
      else
-     
-          B = A    
-                 
+          B = A        
      endif
 
      call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
@@ -69,13 +65,9 @@ contains
      L_partion_size_mod = mod(n,mpiSize)
                
      if (L_partion_size_mod .eq. 0) then
-               
-          L_partion_size = n / mpiSize
-               
+          L_partion_size = n / mpiSize      
      else
-               
           L_partion_size = (n + (mpiSize - L_partion_size_mod)) / mpiSize
-          
      endif
                  
      ! Работа процесса над своей порцией   
@@ -85,32 +77,23 @@ contains
 
      do L = L_leftbound, L_rightbound    
           
-     if (L .gt. n) cycle    
-
+     if (L .gt. n) cycle
           current_column = B(:, L)
-          
           do R = L, n
- 
                if (R .gt. L) then 
-               
                     current_column = current_column + B(:, R)
-                         
                endif
                 
                call FindMaxInArray(current_column, current_sum, Up, Down) 
                       
                if (current_sum .gt. max_sum) then
-               
                     max_sum = current_sum
                     x1 = Up
                     x2 = Down
                     y1 = L
                     y2 = R
-                    
                endif
-               
           end do
-          
      end do
         
      deallocate(current_column)
@@ -120,29 +103,26 @@ contains
      allocate(max_sum_array(mpiSize), stat = ier)
      if (ier .ne. 0) stop 'Не могу выделить память для массива max_sum_array'
      
-     call mpi_gather(max_sum, 1, MPI_DOUBLE_PRECISION, max_sum_array, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+     call mpi_gather(max_sum, 1, MPI_REAL8, max_sum_array, 1, MPI_REAL8, 0, MPI_COMM_WORLD, ierr)
      
      if (mpiRank .eq. 0) then
-     
           max_rank = maxloc(max_sum_array, dim = 1)
           max_rank = max_rank - 1
-     
      endif
      
-     call mpi_bcast(max_rank, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(max_rank, 1, MPI_INTEGER4, 0, MPI_COMM_WORLD, ierr)
      
      deallocate(max_sum_array)
      
      ! Сообщение другим процессам результатов
      
-     call mpi_bcast(x1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(y1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(x2, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
-     call mpi_bcast(y2, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(x1, 1, MPI_REAL8, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(y1, 1, MPI_REAL8, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(x2, 1, MPI_REAL8, max_rank, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(y2, 1, MPI_REAL8, max_rank, MPI_COMM_WORLD, ierr)
                                                                        
                                                                        
      if (transpos) then  
-     
           tmp = x1
           x1 = y1
           y1 = tmp
@@ -150,7 +130,6 @@ contains
           tmp = y2
           y2 = x2
           x2 = tmp
-          
      endif
 
      end subroutine
@@ -178,18 +157,14 @@ contains
           cur = sum - min_sum
           
           if (cur .gt. ans) then
-          
                ans = cur
                Up = min_pos + 1
                Down = i
-               
           endif
          
           if (sum .lt. min_sum) then
-          
                min_sum = sum
                min_pos = i
-          
           endif
 
      enddo
