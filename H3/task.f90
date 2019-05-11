@@ -32,7 +32,7 @@ contains
      integer(4) L_leftbound, L_rightbound ! Границы индексов для данного ранга
      
      ! Переменные для определения результата
-     double precision real_max_sum(2) ! Максимальное значение max_sum и ранг процесса, который его нашёл
+     real(8), allocatable, dimension(:) :: max_sum_array ! Максимальное значение max_sum и ранг процесса, который его нашёл
      integer(4) max_rank ! Ранг процесса, который нашел максимальное значение max_sum
      
      m = size(A, dim=1) 
@@ -116,11 +116,24 @@ contains
      deallocate(current_column)
        
      ! Определение ранга процесса с максимальным значением max_sum
-     call mpi_reduce(max_sum, real_max_sum, 4, MPI_2DOUBLE_PRECISION, MPI_MAXLOC, 0, MPI_COMM_WORLD, ierr)
+     
+     allocate(max_sum_array(mpiSize), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива max_sum_array'
+     
+     call mpi_gather(max_sum, 1, MPI_DOUBLE_PRECISION, max_sum_array, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+     
+     if (mpiRank .eq. 0) then
+     
+          max_rank = maxloc(max_sum_array, dim = 1)
+          max_rank = max_rank - 1
+     
+     endif
+     
+     call mpi_bcast(max_rank, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierr)
+     
+     deallocate(max_sum_array)
      
      ! Сообщение другим процессам результатов
-     
-     max_rank = real_max_sum(2)
      
      call mpi_bcast(x1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
      call mpi_bcast(y1, 1, MPI_DOUBLE_PRECISION, max_rank, MPI_COMM_WORLD, ierr)
