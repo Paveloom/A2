@@ -13,14 +13,18 @@ implicit none
      integer(4) A_size                    ! Длина стороны квадратной матрицы
      integer(4) A_partion_size            ! Размер порции
      integer(4) A_partion_size_mod        ! Остаток от деления A_size на mpiSize
+     integer(4) A_partion_shift           ! Сдвиг порции от начала в зависимости от ранга
      integer(4) A_leftbound, A_rightbound ! Границы индексов для данного ранга
+     
+     ! Вспомогательные переменные при обмене сообщениями
+     integer(4) send_leftbound, send_rightbound ! Границы индексов для данного ранга при ранге i
      
      ! Вспомогательные переменные MPI
      integer(4) mpiErr, mpiSize, mpiRank
      integer(4) ierr, status
 
      ! Указание на размер квадратной матрицы
-     A_size = 1000
+     A_size = 1001
           
      allocate(A(A_size,A_size), stat = ier); if (ier .ne. 0) stop 'Не могу выделить память для массива A'
      
@@ -35,26 +39,30 @@ implicit none
      if (A_partion_size_mod .eq. 0) then
                
           A_partion_size = A_size / mpiSize
+          A_partion_shift = mpiRank * A_partion_size
                
+     elseif (mpiRank .eq. mpiSize - 1) then
+     
+          A_partion_size = (A_size + (mpiSize - A_partion_size_mod)) / mpiSize - (mpiSize - A_partion_size_mod)
+          A_partion_shift = mpiRank * (A_partion_size + (mpiSize - A_partion_size_mod))
+     
      else
                
           A_partion_size = (A_size + (mpiSize - A_partion_size_mod)) / mpiSize
+          A_partion_shift = mpiRank * A_partion_size
           
      endif
- 
+     
      ! Заполнение процесcом своей порции
-     A_leftbound = 1 + mpiRank * A_partion_size
-     A_rightbound = A_partion_size + mpiRank * A_partion_size
+     A_leftbound = 1 + A_partion_shift
+     A_rightbound = A_partion_size + A_partion_shift
      
-     do i = A_leftbound, A_rightbound; 
-     
-          if (i .gt. A_size) cycle
-     
-     do j = 1, A_size
+     do i = A_leftbound, A_rightbound, 1
+     do j = 1, A_size, 1
         
           A(i,j) = i + j
      
-     enddo; enddo
+     enddo;enddo
      
      ! Передача всех порций процессу 0
            
@@ -65,15 +73,27 @@ implicit none
      else
      
           do i = 1, mpiSize - 1
+          
+               send_leftbound = 1 + i * A_partion_size
                
-               call mpi_recv(A(1 + i * A_partion_size:A_partion_size + i * A_partion_size,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
+               if (i .eq. mpiSize - 1 .and. A_partion_size_mod .ne. 0) then
+               
+                    send_rightbound = A_partion_size + i * A_partion_size - (mpiSize - A_partion_size_mod)
+               
+               else
+               
+                    send_rightbound = A_partion_size + i * A_partion_size
+               
+               endif
+               
+               call mpi_recv(A(send_leftbound:send_rightbound,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
      
           enddo
           
      endif
      
      ! Передача процессом 0 готовой матрицы A остальным процессам
-     call mpi_bcast(A, A_size*A_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)   
+     call mpi_bcast(A, A_size*A_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
      
      ! Вызов процедуры нахождения координат максимальной подматрицы
      call GetMaxCoordinates(A, x1, y1, x2, y2)
