@@ -26,12 +26,6 @@ contains
      integer(4) mpiErr, mpiSize, mpiRank
      integer(4) ierr
      
-     ! Переменные для деления первого подпространства итераций на порции
-     integer(4) L_partion_size            ! Размер порции
-     integer(4) L_partion_size_mod        ! Остаток от деления n на mpiSize
-     integer(4) L_partion_shift           ! Сдвиг порции от начала в зависимости от ранга
-     integer(4) L_leftbound, L_rightbound ! Границы индексов для данного ранга
-     
      ! Переменные для определения результата
      real(8), allocatable, dimension(:) :: max_sum_array ! Максимальное значение max_sum и ранг процесса, который его нашёл
      integer(4) max_rank ! Ранг процесса, который нашел максимальное значение max_sum
@@ -53,35 +47,18 @@ contains
      call mpi_comm_size(MPI_COMM_WORLD, mpiSize, mpiErr)
      call mpi_comm_rank(MPI_COMM_WORLD, mpiRank, mpiErr)
 
-     allocate(current_column(m), stat = ier)
-     if (ier .ne. 0) stop 'Не могу выделить память для массива current_column'
-
      max_sum = B(1,1)
      x1 = 1
      y1 = 1
      x2 = 1
      y2 = 1
 
-     ! Вычисление размера порции
-     L_partion_size_mod = mod(n,mpiSize)
-               
-     if (L_partion_size_mod .eq. 0) then
-          L_partion_size = n / mpiSize
-          L_partion_shift = mpiRank * L_partion_size    
-     elseif (mpiRank .eq. mpiSize - 1) then
-          L_partion_size = (n + (mpiSize - L_partion_size_mod)) / mpiSize - (mpiSize - L_partion_size_mod)
-          L_partion_shift = mpiRank * (L_partion_size + (mpiSize - L_partion_size_mod))
-     else
-          L_partion_size = (n + (mpiSize - L_partion_size_mod)) / mpiSize
-          L_partion_shift = mpiRank * L_partion_size
-     endif
-                 
-     ! Работа процесса над своей порцией   
-               
-     L_leftbound = 1 + L_partion_shift
-     L_rightbound = L_partion_size + L_partion_shift
+     ! Работа процесса над своей порцией 
      
-     do L = L_leftbound, L_rightbound
+     allocate(current_column(m), stat = ier)
+     if (ier .ne. 0) stop 'Не могу выделить память для массива current_column'  
+               
+     do L = mpiRank + 1, n, mpiSize
           current_column = B(:, L)
           do R = L, n
                if (R .gt. L) then 

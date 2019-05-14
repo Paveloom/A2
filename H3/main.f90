@@ -68,7 +68,7 @@ implicit none
            
      if (mpiRank .gt. 0) then
      
-          call mpi_send(A(A_leftbound:A_rightbound,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, 0, mpiRank, MPI_COMM_WORLD, ierr)
+          call mpi_send(A(A_leftbound:A_rightbound,:), A_partion_size*A_size, MPI_REAL8, 0, mpiRank, MPI_COMM_WORLD, ierr)
      
      else
      
@@ -86,14 +86,14 @@ implicit none
                
                endif
                
-               call mpi_recv(A(send_leftbound:send_rightbound,:), A_partion_size*A_size, MPI_DOUBLE_PRECISION, i, i, MPI_COMM_WORLD, status, ierr)
+               call mpi_recv(A(send_leftbound:send_rightbound,:), A_partion_size*A_size, MPI_REAL8, i, i, MPI_COMM_WORLD, status, ierr)
      
           enddo
           
      endif
      
      ! Передача процессом 0 готовой матрицы A остальным процессам
-     call mpi_bcast(A, A_size*A_size, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
+     call mpi_bcast(A, A_size*A_size, MPI_REAL8, 0, MPI_COMM_WORLD, ierr)
      
      ! Вызов процедуры нахождения координат максимальной подматрицы
      call GetMaxCoordinates(A, x1, y1, x2, y2)
