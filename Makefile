@@ -1,139 +1,106 @@
 
-     # Настройки компиляции программ
-     
-     comp := gfortran
-     opt := -c -Wall -Wtabs
-     pattern := f95
-     allpattern := *.$(pattern)
-     anypattern := %.$(pattern)
-     source := $(wildcard $(allpattern))
-     mod := $(patsubst $(anypattern), %.mod, $(source))
-     obj := $(patsubst $(anypattern), %.o, $(source))
-     
-     # Заглушка на вывод сообщений указанными правилами
-     # (без указания имён подавляет вывод со стороны make-файла у всех правил)
-     .SILENT: 
+     ## Это шаблон make-файла для публикации кода на GitHub.
 
-     # Блок правил для компиляции объектных файлов
-      
-     main : $(obj)
-	       $(comp) $^ -o $@
+     ## Репозиторий на GitHub: https://github.com/Paveloom/B1
+     ## Документация: https://www.notion.so/paveloom/B1-fefcaf42ddf541d4b11cfcab63c2f018
 
-     %.o : $(anypattern)
-	      $(comp) $(opt) $< -o $@
+     ## Версия релиза: 2.2.1
+     ## Версия документации: 2.2.0
 
-     %.mod : $(anypattern)
-	        $(comp) $(opt) $<
+     ## Автор: Павел Соболев (http://paveloom.tk)
 
-     # Блок правил-зависимостей (при необходимости)
-     main.o : testm.mod
+     ## Для корректного отображения содержимого
+     ## символ табуляции должен визуально иметь
+     ## ту же длину, что и пять пробелов.
 
-     # Блок правил для инициализации make-файла для сборки программы
-      
-     input :
-	        touch input
-      
-     result : main input
-	         time ./$<  < input > output
-	        
-     result-r : main input
-		      rm output
-		      make result
-		      cat output
+     # Настройки make-файла
 
-     # Блок правил для очистки директории
-     
-     clean :
-	        rm -f $(obj) $(mod) main
+     ## Имя координатора
+     make := make
 
-     clean-all :
-	            rm -f *.o *.mod main *.eps *.dat result
+     ## Указание оболочки
+     SHELL := /bin/bash
+
+     ## Указание make-файлу выполнять все правила в одном вызове оболочки
+     .ONESHELL :
+
+     ## Заглушка на вывод информации указанным правилам
+     .SILENT :
+
+     ## Правила-псевдоцели
+     .PHONY : git, git-am, new, del, git-new, git-clean, archive
+
+     ## Правило, выполняющееся при вызове координатора без аргументов
+     ALL : git
 
 
 
-     # Блок правил для загрузки кода на Github
+     # Блок правил для разработки и публикации кода на GitHub
 
-     # Правила для проверки статуса репозитория
-          
-     git-s :
-		   git status
-		   git remote
+     ## Имя пользователя на GitHub
+     username := Paveloom
 
-     # Правило для загрузки на Github с указанием метки репозитория и сообщения коммита (см. Readme)
+     ## Сообщение стартового коммита
+     start_message := "Стартовый коммит."
 
-     ifeq (git-r,$(firstword $(MAKECMDGOALS)))
-          rep := $(wordlist 2,2,$(MAKECMDGOALS))
-          $(eval $(rep):;@#)
-     endif
+     ## Имя ветки изменений
+     feature_branch := feature
 
-     git-r :
-		   git add -A
-		   git commit -e
-		   git push -u $(rep) master
-		
-	# Правило для загрузки на Github с указанием сообщения коммита, но без указания метки репозитория (см. Readme)
-
+     ## Правило для создания и публикации коммита
      git :
-		 git add -A
-		 git commit -e
-		 git push -u origin master
-		 
-     # Правило для обновления последнего коммита до текущего состояния локального репозитория (см. Readme)
-     # (без указания метки репозитория; использовать только при уверенности в безопасности)
-		 
-     git-am : 
+	      git add -A
+	      git commit -e
+
+	      # Проверка, был ли создан коммит
+	      if [ $$? -eq 0 ]; then
+
+	           git push --follow-tags
+
+	      fi
+
+     ## Правило для обновления последнего коммита до текущего состояния локального репозитория
+     git-am :
 	         git add -A
 	         git commit --amend
-	         git push --force-with-lease origin master
-	         
-     # Правило для обновления последнего коммита до текущего состояния локального репозитория (см. Readme)
-     # (без указания метки репозитория; использовать только при уверенности в безопасности)
 
-     ifeq (git-am-r,$(firstword $(MAKECMDGOALS)))
-          label := $(wordlist 2,2,$(MAKECMDGOALS))
-          $(eval $(label):;@#)
-     endif
- 
-     git-am-r : 
-	         git add -A
-	         git commit --amend
-	         git push --force-with-lease $(label) master
+	         # Проверка, был ли создан коммит
+	         if [ $$? -eq 0 ]; then
 
-     # Правило для удаления репозитория в текущей директории
-     git-clean :
-		       rm -rf .git
+	              git push --follow-tags --force-with-lease
 
-     # Правило для подключения нового репозитория с указанием названия и метки
-     # и загрузки в него стартового make-файла (см. Readme)
+	         fi
 
-     ifeq (git-new-r,$(firstword $(MAKECMDGOALS)))
-          new_rep := $(wordlist 2,2,$(MAKECMDGOALS))
-          label := $(wordlist 3,3,$(MAKECMDGOALS))
-          $(eval $(new_rep):;@#)
-          $(eval $(label):;@#)
-     endif
+     ## Правило для создания ветки изменений
+     new :
+	      git checkout -q master
+	      git checkout -b ${feature_branch}
+	      git push -u origin ${feature_branch}
 
-     git-new-r :
-		       make git-clean
-			  git init
-			  git remote add $(label) git@github.com:Paveloom/$(new_rep).git
-			  git add Makefile
-			  git commit -m "Стартовый make-файл."
-			  git push -u $(label) master
-			
-     # Правило для подключения нового репозитория с указанием названия, но без указания метки,
-     # и загрузки в него стартового make-файла (см. Readme)
+     ## Правило для удаления текущей ветки изменений локально
+     del :
+	      git checkout -q master
+	      git branch -D ${feature_branch}
 
-     ifeq (git-new,$(firstword $(MAKECMDGOALS)))
-          new_rep := $(wordlist 2,2,$(MAKECMDGOALS))
+     ## Правило для подключения удалённого репозитория и
+     ## загрузки в него стартового make-файла
+
+     ifeq (git-new, $(firstword $(MAKECMDGOALS)))
+          new_rep := $(wordlist 2, 2, $(MAKECMDGOALS))
           $(eval $(new_rep):;@#)
      endif
 
      git-new :
-			make git-clean
-			git init
-			git remote add origin git@github.com:Paveloom/$(new_rep).git
-			git add Makefile
-			git commit -m "Стартовый make-файл."
-			git push -u origin master
+	          $(make) git-clean
+	          git init
+	          git remote add origin git@github.com:$(username)/$(new_rep).git
+	          git add Makefile
+	          git commit -m $(start_message)
+	          git push -u origin master
 
+     ## Правило для удаления репозитория в текущей директории
+     git-clean :
+	            rm -rf .git
+
+     # Правило для создания архивов
+     archive :
+	          find Директория/ -path '*/.*' -prune -o -type f -print | zip Архивы/Директория.zip -FS -q -@
